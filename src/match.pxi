@@ -105,7 +105,7 @@ cdef class Match:
     def groupdict(self):
         result = self._groupdict()
         if self.encoded:
-            return {a: b.decode('utf8') for a, b in result.items()}
+            return {a: None if b is None else b.decode('utf8') for a, b in result.items()}
         return result
 
     def expand(self, object template):
