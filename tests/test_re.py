@@ -178,7 +178,7 @@ class ReTests(unittest.TestCase):
                          'hello there')
 
     def test_bug_462270(self):
-        # Test for empty sub() behaviour, see SF bug #462270
+        # Test for empty sub() behavior, see SF bug #462270
         self.assertEqual(re.sub('x*', '-', 'abxd'), '-a-b-d-')
         self.assertEqual(re.sub('x+', '-', 'abxd'), 'ab-d')
 
@@ -189,8 +189,9 @@ class ReTests(unittest.TestCase):
         self.assertRaises(re.error, re.sub, '(?P<a>x)', '\g<a a>', 'xx')
         self.assertRaises(re.error, re.sub, '(?P<a>x)', '\g<1a1>', 'xx')
         self.assertRaises(IndexError, re.sub, '(?P<a>x)', '\g<ab>', 'xx')
-        self.assertRaises(re.error, re.sub, '(?P<a>x)|(?P<b>y)', '\g<b>', 'xx')
-        self.assertRaises(re.error, re.sub, '(?P<a>x)|(?P<b>y)', '\\2', 'xx')
+        # non-matched groups no longer raise an error:
+        # self.assertRaises(re.error, re.sub, '(?P<a>x)|(?P<b>y)', '\g<b>', 'xx')
+        # self.assertRaises(re.error, re.sub, '(?P<a>x)|(?P<b>y)', '\\2', 'xx')
         self.assertRaises(re.error, re.sub, '(?P<a>x)', '\g<-1>', 'xx')
 
     def test_re_subn(self):
