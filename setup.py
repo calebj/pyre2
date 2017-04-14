@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import io
 import os
 import re
@@ -10,9 +9,11 @@ BASE_DIR = os.path.dirname(__file__)
 PY2 = sys.version_info[0] == 2
 DEBUG = False
 
-def cmp(a, b):
-    return (a > b) - (a < b)
-
+# kludge; http://stackoverflow.com/a/37762853
+try:
+    CLANG = os.environ['CC'] == 'clang'
+except KeyError:
+    CLANG = False
 
 class TestCommand(Command):
     description = 'Run packaged tests'
@@ -28,13 +29,8 @@ class TestCommand(Command):
         re2_test.testall()
 
 
-def version_compare(version1, version2):
-    def normalize(v):
-        return [int(x) for x in re.sub(r'(\.0+)*$', '', v).split(".")]
-    try:
-        return cmp(normalize(version1), normalize(version2))
-    except ValueError:  # raised by e.g. '0.24b0'
-        return 1
+def majorminor(version):
+    return [int(x) for x in re.match(r'([0-9]+)\.([0-9]+)', version).groups()]
 
 cmdclass = {'test': TestCommand}
 
@@ -46,62 +42,60 @@ if '--cython' in sys.argv or not os.path.exists('src/re2.cpp'):
     except ValueError:
         pass
     from Cython.Compiler.Main import Version
-    if version_compare(MINIMUM_CYTHON_VERSION, Version.version) > 0:
-        raise ValueError("Cython is version %s, but needs to be at least %s." %
-                         (Version.version, MINIMUM_CYTHON_VERSION))
+    if majorminor(MINIMUM_CYTHON_VERSION) >= majorminor(Version.version):
+        raise ValueError('Cython is version %s, but needs to be at least %s.'
+                % (Version.version, MINIMUM_CYTHON_VERSION))
     from Cython.Distutils import build_ext
     from Cython.Build import cythonize
     cmdclass['build_ext'] = build_ext
     use_cython = True
 else:
     # Building from C
-    ext_files.append("src/re2.cpp")
+    ext_files.append('src/re2.cpp')
     use_cython = False
 
 
 # Locate the re2 module
-_re2_prefixes = [
-    '/usr',
-    '/usr/local',
-    '/opt/',
-]
+_re2_prefixes = ['/usr', '/usr/local', '/opt/', os.environ['HOME'] + '/.local']
 
-for re2_prefix in _re2_prefixes:
-    if os.path.exists(os.path.join(re2_prefix, "include", "re2")):
+re2_prefix = ''
+for a in _re2_prefixes:
+    if os.path.exists(os.path.join(a, 'include', 're2')):
+        re2_prefix = a
         break
-else:
-    re2_prefix = ""
 
 def get_long_description():
-    with io.open(os.path.join(BASE_DIR, "README.rst"), encoding='utf8') as inp:
+    with io.open(os.path.join(BASE_DIR, 'README.rst'), encoding='utf8') as inp:
         return inp.read()
 
 def get_authors():
     author_re = re.compile(r'^\s*(.*?)\s+<.*?\@.*?>', re.M)
-    authors_f = open(os.path.join(BASE_DIR, "AUTHORS"))
+    authors_f = open(os.path.join(BASE_DIR, 'AUTHORS'))
     authors = [match.group(1) for match in author_re.finditer(authors_f.read())]
     authors_f.close()
     return ', '.join(authors)
 
 def main():
     os.environ['GCC_COLORS'] = 'auto'
-    include_dirs = [os.path.join(re2_prefix, "include")] if re2_prefix else []
-    libraries = ["re2"]
-    library_dirs = [os.path.join(re2_prefix, "lib")] if re2_prefix else []
-    runtime_library_dirs = [os.path.join(re2_prefix, "lib")
+    include_dirs = [os.path.join(re2_prefix, 'include')] if re2_prefix else []
+    libraries = ['re2']
+    library_dirs = [os.path.join(re2_prefix, 'lib')] if re2_prefix else []
+    runtime_library_dirs = [os.path.join(re2_prefix, 'lib')
             ] if re2_prefix else []
+    extra_compile_args = ['-O0', '-g'] if DEBUG else [
+            '-O3', '-march=native', '-DNDEBUG']
+    if CLANG:
+        extra_compile_args.append('-std=c++11')
     ext_modules = [
         Extension(
-            "re2",
-            sources=["src/re2.pyx" if use_cython else "src/re2.cpp"],
-            language="c++",
+            're2',
+            sources=['src/re2.pyx' if use_cython else 'src/re2.cpp'],
+            language='c++',
             include_dirs=include_dirs,
             libraries=libraries,
             library_dirs=library_dirs,
             runtime_library_dirs=runtime_library_dirs,
-            extra_compile_args=['-std=c++11', '-DPY2=%d' % PY2]
-                + (['-g', '-O0'] if DEBUG else
-                ['-O3', '-march=native', '-DNDEBUG']),
+            extra_compile_args=['-DPY2=%d' % PY2] + extra_compile_args,
             extra_link_args=['-g'] if DEBUG else ['-DNDEBUG'],
         )]
     if use_cython:
@@ -115,14 +109,14 @@ def main():
                 'warn.unreachable': True,
             })
     setup(
-        name="re2",
-        version="0.2.23",
-        description="Python wrapper for Google's RE2 using Cython",
+        name='re2',
+        version='0.2.23',
+        description='Python wrapper for Google\'s RE2 using Cython',
         long_description=get_long_description(),
         author=get_authors(),
-        license="New BSD License",
-        author_email = "mike@axiak.net",
-        url = "http://github.com/axiak/pyre2/",
+        license='New BSD License',
+        author_email = 'mike@axiak.net',
+        url = 'http://github.com/axiak/pyre2/',
         ext_modules = ext_modules,
         cmdclass=cmdclass,
         classifiers = [
