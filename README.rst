@@ -8,19 +8,18 @@ Summary
 =======
 
 pyre2 is a Python extension that wraps
-`Google's RE2 regular expression library
-<https://github.com/google/re2>`_.
+`Google's RE2 regular expression library <https://github.com/google/re2>`_.
+The RE2 engine compiles (strictly) regular expressions to
+deterministic finite automata, which guarantees linear-time behavior.
 
-This version of pyre2 is similar to the one you'd
-find at `facebook's github repository <http://github.com/facebook/pyre2/>`_
-except that the stated goal of this version is to be a *drop-in replacement* for
-the ``re`` module.
+Intended as a drop-in replacement for ``re``. Unicode is supported by encoding
+to UTF-8, and bytes strings are treated as UTF-8 when the UNICODE flag is given.
+For best performance, work with UTF-8 encoded bytes strings.
 
 Backwards Compatibility
 =======================
 
-The stated goal of this module is to be a drop-in replacement for ``re``. 
-My hope is that some will be able to go to the top of their module and put::
+The stated goal of this module is to be a drop-in replacement for ``re``, i.e.::
 
     try:
         import re2 as re
@@ -28,42 +27,56 @@ My hope is that some will be able to go to the top of their module and put::
         import re
 
 That being said, there are features of the ``re`` module that this module may
-never have. For example, ``RE2`` does not handle lookahead assertions (``(?=...)``).
-For this reason, the module will automatically fall back to the original ``re`` module
-if there is a regex that it cannot handle.
+never have; these will be handled through fallback to the original ``re`` module``:
 
-However, there are times when you may want to be notified of a failover. For this reason,
-I'm adding the single function ``set_fallback_notification`` to the module.
-Thus, you can write::
+    - lookahead assertions ``(?!...)``
+    - backreferences (``\\n`` in search pattern)
+    - \W and \S not supported inside character classes
+
+On the other hand, unicode character classes are supported (e.g., ``\p{Greek}``).
+Syntax reference: https://github.com/google/re2/wiki/Syntax
+
+However, there are times when you may want to be notified of a failover. The
+function ``set_fallback_notification`` determines the behavior in these cases::
 
     try:
         import re2 as re
     except ImportError:
         import re
     else:
-	re.set_fallback_notification(re.FALLBACK_WARNING)
+        re.set_fallback_notification(re.FALLBACK_WARNING)
 
-And in the above example, ``set_fallback_notification`` can handle 3 values:
-``re.FALLBACK_QUIETLY`` (default), ``re.FALLBACK_WARNING`` (raises a warning), and
-``re.FALLBACK_EXCEPTION`` (which raises an exception).
+``set_fallback_notification`` takes three values:
+``re.FALLBACK_QUIETLY`` (default), ``re.FALLBACK_WARNING`` (raise a warning),
+and ``re.FALLBACK_EXCEPTION`` (raise an exception).
 
 Installation
 ============
 
-To install, you must first install the prerequisites:
+Prerequisites:
 
 * The `re2 library from Google <https://github.com/google/re2>`_
 * The Python development headers (e.g. ``sudo apt-get install python-dev``)
-* A build environment with ``g++`` (e.g. ``sudo apt-get install build-essential``)
+* A build environment with ``gcc`` or ``clang`` (e.g. ``sudo apt-get install build-essential``)
 * Cython 0.20+ (``pip install cython``)
 
-After the prerequisites are installed, you can install as follows::
+After the prerequisites are installed, install as follows (``pip3`` for python3)::
+
+    $ pip install https://github.com/andreasvc/pyre2/archive/master.zip
+
+For development, get the source::
 
     $ git clone git://github.com/andreasvc/pyre2.git
     $ cd pyre2
     $ make install
 
 (or ``make install3`` for Python 3)
+
+Documentation
+=============
+
+Consult the docstring in the source code or interactively
+through ipython or ``pydoc re2`` etc.
 
 Unicode Support
 ===============
@@ -141,12 +154,6 @@ The tests show the following differences with Python's ``re`` module:
 
 Please report any further issues with ``pyre2``.
 
-Contact
-=======
-
-You can file bug reports on GitHub, or contact the author:
-`Mike Axiak  contact page <http://mike.axiak.net/contact>`_.
-
 Tests
 =====
 
@@ -161,11 +168,10 @@ is writing comprehensive tests for this. It's actually really easy:
 
 Credits
 =======
+This code builds on the following projects (in chronological order):
 
-Though I ripped out the code, I'd like to thank David Reiss
-and Facebook for the initial inspiration. Plus, I got to
-gut this readme file!
+- Google's RE2 regular expression library: https://github.com/google/re2
+- Facebook's pyre2 github repository: http://github.com/facebook/pyre2/
+- Mike Axiak's Cython version of this: http://github.com/axiak/pyre2/ (seems not actively maintained)
+- This fork adds Python 3 support and other improvements.
 
-Moreover, this library would of course not be possible if not for
-the immense work of the team at ``RE2`` and the few people who work
-on Cython.
