@@ -106,7 +106,6 @@ include "includes.pxi"
 
 import re
 import sys
-import array
 import warnings
 
 
@@ -404,23 +403,22 @@ cdef utf8indices(char * cstring, int size, int *pos, int *endpos):
     endpos[0] = newendpos
 
 
-cdef array.array unicodeindices(array.array positions,
+cdef void unicodeindices(map[int, int] &positions,
         char * cstring, int size, int * cpos, int * upos):
-    """Convert an array of UTF-8 byte indices to unicode indices."""
+    """Convert UTF-8 byte indices to unicode indices."""
     cdef unsigned char * s = <unsigned char *>cstring
-    cdef int i = 0
-    cdef array.array result = array.clone(positions, len(positions), False)
+    cdef map[int, int].iterator it = positions.begin()
 
-    if positions.data.as_longs[i] == -1:
-        result.data.as_longs[i] = -1
-        i += 1
-        if i == len(positions):
-            return result
-    if positions.data.as_longs[i] == cpos[0]:
-        result.data.as_longs[i] = upos[0]
-        i += 1
-        if i == len(positions):
-            return result
+    if dereference(it).first == -1:
+        dereference(it).second = -1
+        postincrement(it)
+        if it == positions.end():
+            return
+    if dereference(it).first == cpos[0]:
+        dereference(it).second = upos[0]
+        postincrement(it)
+        if it == positions.end():
+            return
 
     while cpos[0] < size:
         if s[cpos[0]] < 0x80:
@@ -442,12 +440,11 @@ cdef array.array unicodeindices(array.array positions,
             upos[0] += 1
             emit_endif()
 
-        if positions.data.as_longs[i] == cpos[0]:
-            result.data.as_longs[i] = upos[0]
-            i += 1
-            if i == len(positions):
+        if dereference(it).first == cpos[0]:
+            dereference(it).second = upos[0]
+            postincrement(it)
+            if it == positions.end():
                 break
-    return result
 
 
 __all__ = [

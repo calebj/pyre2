@@ -1,11 +1,9 @@
-
 cimport cpython.unicode
-from cython.operator cimport preincrement as inc, dereference as deref
 from libcpp.map cimport map
 from libcpp.string cimport string as cpp_string
+from cython.operator cimport postincrement, dereference
 from cpython.buffer cimport Py_buffer, PyBUF_SIMPLE, PyObject_CheckBuffer, \
         PyObject_GetBuffer, PyBuffer_Release
-from cpython cimport array
 from cpython.version cimport PY_MAJOR_VERSION
 
 

@@ -18,7 +18,6 @@ cdef class Match:
 
     property lastgroup:
         def __get__(self):
-
             if self._lastindex < 1:
                 return None
             for name, n in self.re.groupindex.items():
@@ -105,7 +104,8 @@ cdef class Match:
     def groupdict(self):
         result = self._groupdict()
         if self.encoded:
-            return {a: None if b is None else b.decode('utf8') for a, b in result.items()}
+            return {a: None if b is None else b.decode('utf8')
+                    for a, b in result.items()}
         return result
 
     def expand(self, object template):
@@ -264,12 +264,13 @@ cdef class Match:
 
     cdef list _convert_spans(self, spans,
             char * cstring, int size, int * cpos, int * upos):
-        positions = [x for x, _ in spans] + [y for _, y in spans]
-        positions = array.array(b'l' if PY2 else 'l', sorted(set(positions)))
-        posdict = dict(zip(
-                positions,
-                unicodeindices(positions, cstring, size, cpos, upos)))
-        return [(posdict[x], posdict[y]) for x, y in spans]
+        cdef map[int, int] positions
+        cdef int x, y
+        for x, y in spans:
+            positions[x] = x
+            positions[y] = y
+        unicodeindices(positions, cstring, size, cpos, upos)
+        return [(positions[x], positions[y]) for x, y in spans]
 
     def __dealloc__(self):
         delete_StringPiece_array(self.matches)
