@@ -43,7 +43,7 @@ cdef class Pattern:
         if pystring_to_cstring(bytestr, &cstring, &size, &buf) == -1:
             raise TypeError('expected string or buffer')
         try:
-            if encoded and (pos or endpos != -1):
+            if encoded == 2 and (pos or endpos != -1):
                 utf8indices(cstring, size, &pos, &endpos)
                 cpos = pos
             if pos > size:
@@ -93,7 +93,7 @@ cdef class Pattern:
         if pystring_to_cstring(bytestr, &cstring, &size, &buf) == -1:
             raise TypeError('expected string or buffer')
         try:
-            if encoded and (pos or endpos != -1):
+            if encoded == 2 and (pos or endpos != -1):
                 utf8indices(cstring, size, &pos, &endpos)
             if pos > size:
                 return 0
@@ -143,7 +143,7 @@ cdef class Pattern:
         if pystring_to_cstring(bytestr, &cstring, &size, &buf) == -1:
             raise TypeError('expected string or buffer')
         try:
-            if encoded and (pos or endpos != -1):
+            if encoded == 2 and (pos or endpos != -1):
                 utf8indices(cstring, size, &pos, &endpos)
             if pos > size:
                 return []
@@ -214,7 +214,7 @@ cdef class Pattern:
         if pystring_to_cstring(bytestr, &cstring, &size, &buf) == -1:
             raise TypeError('expected string or buffer')
         try:
-            if encoded and (pos or endpos != -1):
+            if encoded == 2 and (pos or endpos != -1):
                 utf8indices(cstring, size, &pos, &endpos)
                 cpos = pos
             if pos > size:

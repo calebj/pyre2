@@ -320,10 +320,13 @@ cdef inline unicode_to_bytes(object pystring, int * encoded,
 
     If pystring is a bytes string or a buffer, return unchanged.
     If checkotherencoding is 0 or 1 and using Python 3, raise an error
-    if encoded is not equal to it."""
+    if its truth value is not equal to that of encoded.
+    encoded is set to 1 if encoded string can be treated as ASCII,
+    and 2 if it contains multibyte unicode characters."""
     if cpython.unicode.PyUnicode_Check(pystring):
+        origlen = len(pystring)
         pystring = pystring.encode('utf8')
-        encoded[0] = 1
+        encoded[0] = 1 if origlen == len(pystring) else 2
     else:
         encoded[0] = 0
     if not PY2 and checkotherencoding > 0 and not encoded[0]:
@@ -385,7 +388,7 @@ cdef utf8indices(char * cstring, int size, int *pos, int *endpos):
             upos += 1
             # wide unicode chars get 2 unichars when python is compiled
             # with --enable-unicode=ucs2
-            # TODO: verify this
+            # TODO: verify this; cf. http://docs.cython.org/en/latest/src/tutorial/strings.html#narrow-unicode-builds
             emit_ifndef_py_unicode_wide()
             upos += 1
             emit_endif()
@@ -434,7 +437,7 @@ cdef array.array unicodeindices(array.array positions,
             upos[0] += 1
             # wide unicode chars get 2 unichars when python is compiled
             # with --enable-unicode=ucs2
-            # TODO: verify this
+            # TODO: verify this; cf. http://docs.cython.org/en/latest/src/tutorial/strings.html#narrow-unicode-builds
             emit_ifndef_py_unicode_wide()
             upos[0] += 1
             emit_endif()

@@ -6,7 +6,7 @@ cdef class Match:
     cdef readonly tuple regs
 
     cdef StringPiece * matches
-    cdef bint encoded
+    cdef int encoded
     cdef int nmatches
     cdef int _lastindex
     cdef tuple _groups
@@ -257,7 +257,7 @@ cdef class Match:
                 end = start + piece.length()
                 spans.append((start, end))
 
-        if self.encoded:
+        if self.encoded == 2:
             spans = self._convert_spans(spans, cstring, size, cpos, upos)
 
         self.regs = tuple(spans)
