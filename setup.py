@@ -10,14 +10,6 @@ BASE_DIR = os.path.dirname(__file__)
 PY2 = sys.version_info[0] == 2
 DEBUG = False
 
-FLAG_PLATFORMS = ["ubuntu"]
-
-# kludge; http://stackoverflow.com/a/37762853
-try:
-    CLANG = os.environ['CC'] == 'clang'
-except KeyError:
-    CLANG = False
-
 class TestCommand(Command):
     description = 'Run packaged tests'
     user_options = []
@@ -78,24 +70,6 @@ def get_authors():
     authors_f.close()
     return ', '.join(authors)
 
-def flag_platform():
-    # Some platforms require the `-std=c++11` flag. These are the platforms:
-    try:
-        return platform.linux_distribution()[0].lower() in FLAG_PLATFORMS
-    except:
-        return False
-
-def add_cpp_flag():
-    # We add `-std=c++11` as a compiler flag in the following cases:
-    # 1. If the compiler is CLANG
-    # 2. If the platform requires the flag for compilaton
-
-    if CLANG:
-        return True
-    if flag_platform():
-        return True
-    return False
-
 def main():
     os.environ['GCC_COLORS'] = 'auto'
     include_dirs = [os.path.join(re2_prefix, 'include')] if re2_prefix else []
@@ -105,7 +79,8 @@ def main():
             ] if re2_prefix else []
     extra_compile_args = ['-O0', '-g'] if DEBUG else [
             '-O3', '-march=native', '-DNDEBUG']
-    if add_cpp_flag():
+    # Older GCC version such as on CentOS 6 do not support C++11
+    if not platform.python_compiler().startswith('GCC 4.4.7'):
         extra_compile_args.append('-std=c++11')
     ext_modules = [
         Extension(
