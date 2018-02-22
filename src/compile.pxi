@@ -104,10 +104,7 @@ def _compile(object pattern, int flags=0, int max_mem=8388608):
     pypattern.flags = flags
     pypattern.groupindex = {}
     for it in named_groups:
-        if encoded:
-            pypattern.groupindex[cpp_to_unicode(it.first)] = it.second
-        else:
-            pypattern.groupindex[cpp_to_bytes(it.first)] = it.second
+        pypattern.groupindex[cpp_to_unicode(it.first)] = it.second
 
     if flags & DEBUG:
         print(repr(pypattern._dump_pattern()))
