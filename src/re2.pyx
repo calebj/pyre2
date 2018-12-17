@@ -324,7 +324,7 @@ cdef inline unicode_to_bytes(object pystring, int * encoded,
     and 2 if it contains multibyte unicode characters."""
     if cpython.unicode.PyUnicode_Check(pystring):
         origlen = len(pystring)
-        pystring = pystring.encode('utf8')
+        pystring = pystring.encode('utf8', 'surrogatepass')
         encoded[0] = 1 if origlen == len(pystring) else 2
     else:
         encoded[0] = 0
