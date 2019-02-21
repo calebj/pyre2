@@ -1,0 +1,32 @@
+language: python
+
+matrix:
+  include:
+    - os: linux
+      dist: xenial
+      sudo: required
+      python: 3.7.2
+      services:
+      - docker
+      env:
+      - CIBW_BEFORE_BUILD="rm -rf build/"
+      - CIBW_BUILD=*-manylinux1_x86_64
+    - os: linux
+      dist: xenial
+      sudo: required
+      python: 3.7.2
+      services:
+      - docker
+      env:
+      - CIBW_BEFORE_BUILD="rm -rf build/"
+      - CIBW_BUILD=*-manylinux1_i686
+    - os: osx
+      env:
+      language: generic
+
+install:
+  - pip3 install -U setuptools twine wheel cython git+https://github.com/YannickJadoul/cibuildwheel.git@pip-19-stalling-workaround
+
+script:
+  - python3 setup.py build  # cythonize, ensure build works
+  - cibuildwheel --output-dir /tmp/wheelhouse
