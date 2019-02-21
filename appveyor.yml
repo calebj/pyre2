@@ -1,0 +1,16 @@
+environment:
+  PYTHON: "C:\\Python37-x64"
+
+install:
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - git submodule update --init --recursive
+  - "%PYTHON%\\python -m pip install -U setuptools twine wheel cibuildwheel cython"
+
+build_script:
+  - set CIBW_SKIP=cp27-win* cp34-win*
+  - "%PYTHON%\\python setup.py build"
+  - "%PYTHON%\\python -m cibuildwheel --output-dir wheelhouse"
+
+artifacts:
+  - path: "wheelhouse\\*.whl"
+    name: Wheels
